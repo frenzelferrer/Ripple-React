@@ -21,6 +21,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import { initialState } from './data/mockData';
 import type {
   AppState,
@@ -1234,6 +1235,27 @@ export default function App() {
   useEffect(() => {
     applyTheme(currentSettings?.theme_mode || 'auto');
   }, [currentSettings?.theme_mode]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function testSupabaseConnection() {
+      try {
+        const { data, error } = await supabase.from('posts').select('*').limit(1);
+        if (!isMounted) return;
+        console.log('SUPABASE TEST:', { data, error });
+      } catch (error) {
+        if (!isMounted) return;
+        console.error('SUPABASE TEST FAILED:', error);
+      }
+    }
+
+    testSupabaseConnection();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!currentUser) return;
