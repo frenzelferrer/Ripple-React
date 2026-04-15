@@ -3,12 +3,12 @@ import {
   Bell,
   Bookmark,
   Check,
-  ChevronLeft,
   Compass,
   Heart,
   Home,
   Image as ImageIcon,
   LogOut,
+  Menu,
   MessageCircle,
   MoonStar,
   Search,
@@ -42,6 +42,8 @@ import type {
 
 const STORAGE_KEY = 'ripple_react_v1';
 const quickReplies = ['On it', 'Looks good', 'Let me check', 'Can we ship this?', 'Nice direction'];
+
+type MobileMenuKey = 'none' | 'more';
 
 function id(prefix: string) {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -157,6 +159,17 @@ function getConversationWithUser(conversations: Conversation[], meId: string, ot
 
 function getOtherParticipantId(conversation: Conversation, meId: string) {
   return conversation.participant_ids.find((idValue) => idValue !== meId) || meId;
+}
+
+function getViewTitle(activeView: ViewKey, selectedProfile: User | null | undefined, currentUser: User) {
+  if (activeView === 'feed') return 'Home feed';
+  if (activeView === 'profile') return selectedProfile?.full_name || currentUser.full_name;
+  if (activeView === 'saved') return 'Saved posts';
+  if (activeView === 'friends') return 'Friends hub';
+  if (activeView === 'notifications') return 'Notifications';
+  if (activeView === 'messages') return 'Messages';
+  if (activeView === 'search') return 'Search people';
+  return 'Settings';
 }
 
 function AuthScreen({
@@ -397,6 +410,30 @@ function ViewButton({
   );
 }
 
+function MobileTabButton({
+  active,
+  icon,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  icon: JSX.Element;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[11px] transition ${
+        active ? 'bg-white/14 text-foreground' : 'text-muted-foreground'
+      }`}
+      onClick={onClick}
+    >
+      {icon}
+      <span className="truncate">{label}</span>
+    </button>
+  );
+}
+
 function Composer({
   draft,
   onChangeDraft,
@@ -410,23 +447,23 @@ function Composer({
   const [visibility, setVisibility] = useState<PostVisibility>('public');
 
   return (
-    <section className="ripple-panel p-5 md:p-6">
+    <section className="ripple-panel p-4 lg:p-6">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold">Share an update</h2>
+          <h2 className="text-lg font-semibold lg:text-xl">Share an update</h2>
           <p className="text-sm text-muted-foreground">Draft autosaves instantly while you type.</p>
         </div>
-        <span className="ripple-chip">
+        <span className="ripple-chip hidden sm:inline-flex">
           <Sparkles className="size-3.5 text-cyan-300" /> Draft saved
         </span>
       </div>
       <textarea
         value={draft}
         onChange={(event) => onChangeDraft(event.target.value)}
-        className="ripple-input min-h-32 resize-none"
+        className="ripple-input min-h-28 resize-none lg:min-h-32"
         placeholder="What’s moving through Ripple today?"
       />
-      <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto_auto]">
+      <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto_auto]">
         <div className="relative">
           <ImageIcon className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -504,10 +541,10 @@ function PostCard({
   const [postDraft, setPostDraft] = useState(post.content);
 
   return (
-    <article className="ripple-panel p-5 md:p-6">
+    <article className="ripple-panel p-4 lg:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <button className="flex items-center gap-3 text-left" onClick={() => onViewProfile(author.id)}>
-          <AvatarImage user={author} size={48} />
+          <AvatarImage user={author} size={44} />
           <div>
             <div className="font-medium">{author.full_name}</div>
             <div className="text-sm text-muted-foreground">
@@ -683,8 +720,8 @@ function FriendsView({
 
   return (
     <div className="space-y-6">
-      <section className="ripple-panel p-5 md:p-6">
-        <h2 className="text-xl font-semibold">Friend requests</h2>
+      <section className="ripple-panel p-4 lg:p-6">
+        <h2 className="text-lg font-semibold lg:text-xl">Friend requests</h2>
         <p className="mt-1 text-sm text-muted-foreground">Accept requests to unlock friends-only posts and chat.</p>
         <div className="mt-4 space-y-3">
           {incoming.length ? incoming.map((request) => {
@@ -709,8 +746,8 @@ function FriendsView({
         </div>
       </section>
 
-      <section className="ripple-panel p-5 md:p-6">
-        <h2 className="text-xl font-semibold">Your friends</h2>
+      <section className="ripple-panel p-4 lg:p-6">
+        <h2 className="text-lg font-semibold lg:text-xl">Your friends</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {accepted.map((user) => (
             <div key={user.id} className="ripple-panel-soft space-y-3 p-4">
@@ -731,8 +768,8 @@ function FriendsView({
         </div>
       </section>
 
-      <section className="ripple-panel p-5 md:p-6">
-        <h2 className="text-xl font-semibold">People you may know</h2>
+      <section className="ripple-panel p-4 lg:p-6">
+        <h2 className="text-lg font-semibold lg:text-xl">People you may know</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {suggestions.map((user) => (
             <div key={user.id} className="ripple-panel-soft space-y-3 p-4">
@@ -758,10 +795,10 @@ function FriendsView({
 
 function NotificationsView({ notifications, users, onMarkAllRead }: { notifications: Notification[]; users: User[]; onMarkAllRead: () => void }) {
   return (
-    <section className="ripple-panel p-5 md:p-6">
+    <section className="ripple-panel p-4 lg:p-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold">Notifications</h2>
+          <h2 className="text-lg font-semibold lg:text-xl">Notifications</h2>
           <p className="text-sm text-muted-foreground">Friend requests, reactions, comments, and message nudges.</p>
         </div>
         <button className="ripple-button-secondary" onClick={onMarkAllRead}>Mark all read</button>
@@ -835,8 +872,8 @@ function MessagesView({
   }, [activeConversationId, filteredConversations, onSelectConversation]);
 
   return (
-    <section className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
-      <div className="ripple-panel p-5 md:p-6">
+    <section className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)] xl:gap-6">
+      <div className="ripple-panel p-4 lg:p-6">
         <div className="relative mb-4">
           <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input className="ripple-input pl-10" placeholder="Search conversations" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} />
@@ -869,12 +906,12 @@ function MessagesView({
         </div>
       </div>
 
-      <div className="ripple-panel flex min-h-[680px] flex-col p-5 md:p-6">
+      <div className="ripple-panel flex min-h-[560px] flex-col p-4 lg:min-h-[680px] lg:p-6">
         {selectedConversation && otherParticipant ? (
           <>
             <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-4">
               <div className="flex items-center gap-3">
-                <AvatarImage user={otherParticipant} size={48} />
+                <AvatarImage user={otherParticipant} size={44} />
                 <div>
                   <div className="font-medium">{otherParticipant.full_name}</div>
                   <div className="text-sm text-muted-foreground">@{otherParticipant.username}</div>
@@ -889,7 +926,7 @@ function MessagesView({
                 const reply = selectedMessages.find((item) => item.id === message.reply_to_message_id);
                 return (
                   <div key={message.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[78%] rounded-3xl px-4 py-3 ${mine ? 'bg-gradient-to-r from-cyan-400 to-violet-500 text-white' : 'ripple-panel-soft'}`}>
+                    <div className={`max-w-[88%] rounded-3xl px-4 py-3 lg:max-w-[78%] ${mine ? 'bg-gradient-to-r from-cyan-400 to-violet-500 text-white' : 'ripple-panel-soft'}`}>
                       {reply ? <div className={`mb-2 rounded-2xl px-3 py-2 text-xs ${mine ? 'bg-white/16 text-white/85' : 'bg-white/8 text-muted-foreground'}`}>Replying to: {reply.content}</div> : null}
                       <div className="whitespace-pre-wrap text-sm leading-6">{message.content}</div>
                       {message.media_url ? <img src={message.media_url} alt="Shared media" className="mt-3 max-h-52 w-full rounded-2xl object-cover" /> : null}
@@ -918,7 +955,7 @@ function MessagesView({
               </div>
             ) : null}
 
-            <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+            <div className="grid gap-3 lg:grid-cols-[1fr_220px]">
               <textarea className="ripple-input min-h-28 resize-none" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Write a message" />
               <div className="space-y-3">
                 <input className="ripple-input" placeholder="Optional media URL" value={mediaUrl} onChange={(event) => setMediaUrl(event.target.value)} />
@@ -988,7 +1025,7 @@ function SearchView({
 
   return (
     <section className="space-y-5">
-      <div className="ripple-panel p-5 md:p-6">
+      <div className="ripple-panel p-4 lg:p-6">
         <div className="relative">
           <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input className="ripple-input pl-10" value={query} onChange={(event) => onChangeQuery(event.target.value)} placeholder="Search people, bios, or locations" />
@@ -999,7 +1036,7 @@ function SearchView({
           const friendship = getFriendship(requests, currentUser.id, user.id);
           const friends = areFriends(requests, currentUser.id, user.id);
           return (
-            <div key={user.id} className="ripple-panel p-5">
+            <div key={user.id} className="ripple-panel p-4 lg:p-5">
               <button className="flex items-center gap-3 text-left" onClick={() => onViewProfile(user.id)}>
                 <AvatarImage user={user} size={52} />
                 <div>
@@ -1039,8 +1076,8 @@ function SettingsView({
 }) {
   return (
     <section className="grid gap-6 xl:grid-cols-2">
-      <div className="ripple-panel p-5 md:p-6">
-        <h2 className="text-xl font-semibold">Appearance</h2>
+      <div className="ripple-panel p-4 lg:p-6">
+        <h2 className="text-lg font-semibold lg:text-xl">Appearance</h2>
         <p className="mt-1 text-sm text-muted-foreground">Theme persistence mirrors the Ripple backend behavior.</p>
         <div className="mt-5 space-y-4">
           <div>
@@ -1060,8 +1097,8 @@ function SettingsView({
           </div>
         </div>
       </div>
-      <div className="ripple-panel p-5 md:p-6">
-        <h2 className="text-xl font-semibold">Feed & chat preferences</h2>
+      <div className="ripple-panel p-4 lg:p-6">
+        <h2 className="text-lg font-semibold lg:text-xl">Feed & chat preferences</h2>
         <div className="mt-5 space-y-4">
           <div>
             <label className="mb-2 block text-sm text-muted-foreground">Default feed filter</label>
@@ -1141,15 +1178,15 @@ function ProfileView({
   return (
     <div className="space-y-6">
       <section className="ripple-panel overflow-hidden">
-        {viewingUser.cover_image ? <img src={viewingUser.cover_image} alt="Cover" className="h-48 w-full object-cover md:h-64" /> : <div className="h-48 bg-gradient-to-r from-cyan-400/30 to-violet-500/30 md:h-64" />}
-        <div className="p-6 md:p-8">
+        {viewingUser.cover_image ? <img src={viewingUser.cover_image} alt="Cover" className="h-40 w-full object-cover md:h-64" /> : <div className="h-40 bg-gradient-to-r from-cyan-400/30 to-violet-500/30 md:h-64" />}
+        <div className="p-4 lg:p-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="flex items-end gap-4">
-              <div className="-mt-16 rounded-full border-4 border-background">
-                <AvatarImage user={viewingUser} size={108} />
+              <div className="-mt-12 rounded-full border-4 border-background lg:-mt-16">
+                <AvatarImage user={viewingUser} size={88} />
               </div>
               <div>
-                <h2 className="text-3xl font-semibold">{viewingUser.full_name}</h2>
+                <h2 className="text-2xl font-semibold lg:text-3xl">{viewingUser.full_name}</h2>
                 <div className="mt-1 text-sm text-muted-foreground">@{viewingUser.username} • {viewingUser.location || 'Ripple member'}</div>
               </div>
             </div>
@@ -1222,6 +1259,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [feedSearch, setFeedSearch] = useState('');
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [mobileMenu, setMobileMenu] = useState<MobileMenuKey>('none');
 
   const currentUser = getUserById(state.users, state.current_user_id);
   const currentSettings = getSettings(state, currentUser?.id || null);
@@ -1267,6 +1305,10 @@ export default function App() {
     }, 60000);
     return () => window.clearInterval(interval);
   }, [currentUser]);
+
+  useEffect(() => {
+    setMobileMenu('none');
+  }, [activeView]);
 
   const friends = useMemo(
     () => state.users.filter((user) => currentUser && user.id !== currentUser.id && areFriends(state.friend_requests, currentUser.id, user.id)),
@@ -1661,11 +1703,12 @@ export default function App() {
   }
 
   const currentDraft = state.drafts[currentUser.id] || '';
+  const activeTitle = getViewTitle(activeView, selectedProfile, currentUser);
 
   return (
-    <div className="ripple-shell">
-      <div className="grid gap-6 xl:grid-cols-[290px_minmax(0,1fr)_320px]">
-        <aside className="ripple-panel h-fit p-5 xl:sticky xl:top-4">
+    <div className="ripple-shell pb-24 lg:pb-6">
+      <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_320px] xl:gap-6">
+        <aside className="hidden lg:block ripple-panel h-fit p-5 xl:sticky xl:top-4">
           <div className="flex items-center gap-3">
             <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-violet-500 text-lg font-semibold text-white">R</div>
             <div>
@@ -1703,20 +1746,46 @@ export default function App() {
           </div>
         </aside>
 
-        <main className="space-y-6">
-          <header className="ripple-panel flex flex-wrap items-center justify-between gap-4 p-5 md:p-6">
+        <main className="space-y-4 lg:space-y-6">
+          <div className="sticky top-0 z-30 -mx-4 flex items-center justify-between border-b border-white/10 bg-background/85 px-4 py-3 backdrop-blur lg:hidden">
+            <div className="flex items-center gap-3">
+              <AvatarImage user={currentUser} size={38} />
+              <div>
+                <div className="text-sm font-semibold">{activeTitle}</div>
+                <div className="text-xs text-muted-foreground">@{currentUser.username}</div>
+              </div>
+            </div>
+            <button className="ripple-button-secondary px-3 py-2" onClick={() => setMobileMenu(mobileMenu === 'more' ? 'none' : 'more')}>
+              {mobileMenu === 'more' ? <X className="size-4" /> : <Menu className="size-4" />}
+            </button>
+          </div>
+
+          {mobileMenu === 'more' ? (
+            <section className="ripple-panel p-4 lg:hidden">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <button className="ripple-button-secondary justify-start" onClick={() => setActiveView('saved')}>
+                  <Bookmark className="size-4" /> Saved posts
+                </button>
+                <button className="ripple-button-secondary justify-start" onClick={() => setActiveView('search')}>
+                  <Compass className="size-4" /> Search people
+                </button>
+                <button className="ripple-button-secondary justify-start" onClick={() => setActiveView('settings')}>
+                  <SettingsIcon className="size-4" /> Settings
+                </button>
+                <button className="ripple-button-secondary justify-start" onClick={() => updateCurrentSettings({ theme_mode: currentSettings.theme_mode === 'dark' ? 'light' : 'dark' })}>
+                  {resolveTheme(currentSettings.theme_mode) === 'dark' ? <SunMedium className="size-4" /> : <MoonStar className="size-4" />} Toggle theme
+                </button>
+                <button className="ripple-button-secondary justify-start sm:col-span-2" onClick={logout}>
+                  <LogOut className="size-4" /> Sign out
+                </button>
+              </div>
+            </section>
+          ) : null}
+
+          <header className="ripple-panel hidden items-center justify-between gap-4 p-5 md:p-6 lg:flex">
             <div>
               <div className="text-sm text-muted-foreground">Current view</div>
-              <h1 className="text-3xl font-semibold">
-                {activeView === 'feed' && 'Home feed'}
-                {activeView === 'profile' && `${selectedProfile?.full_name || currentUser.full_name}`}
-                {activeView === 'saved' && 'Saved posts'}
-                {activeView === 'friends' && 'Friends hub'}
-                {activeView === 'notifications' && 'Notifications'}
-                {activeView === 'messages' && 'Messages'}
-                {activeView === 'search' && 'Search people'}
-                {activeView === 'settings' && 'Settings'}
-              </h1>
+              <h1 className="text-3xl font-semibold">{activeTitle}</h1>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <div className="relative min-w-[260px]">
@@ -1737,6 +1806,17 @@ export default function App() {
 
           {activeView === 'feed' ? (
             <>
+              <div className="lg:hidden">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    className="ripple-input pl-10"
+                    placeholder="Filter feed posts"
+                    value={feedSearch}
+                    onChange={(event) => setFeedSearch(event.target.value)}
+                  />
+                </div>
+              </div>
               <Composer draft={currentDraft} onChangeDraft={updateDraft} onSubmit={createPost} />
               <div className="flex flex-wrap gap-2">
                 {([
@@ -1897,7 +1977,7 @@ export default function App() {
           ) : null}
         </main>
 
-        <aside className="space-y-6">
+        <aside className="hidden xl:block space-y-6">
           <section className="ripple-panel p-5 md:p-6">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -1954,6 +2034,16 @@ export default function App() {
             </ul>
           </section>
         </aside>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-background/92 px-2 py-2 backdrop-blur lg:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-5 gap-2">
+          <MobileTabButton active={activeView === 'feed'} icon={<Home className="size-4" />} label="Feed" onClick={() => setActiveView('feed')} />
+          <MobileTabButton active={activeView === 'friends'} icon={<Users className="size-4" />} label="Friends" onClick={() => setActiveView('friends')} />
+          <MobileTabButton active={activeView === 'messages'} icon={<MessageCircle className="size-4" />} label="Chat" onClick={() => setActiveView('messages')} />
+          <MobileTabButton active={activeView === 'notifications'} icon={<Bell className="size-4" />} label="Alerts" onClick={() => setActiveView('notifications')} />
+          <MobileTabButton active={activeView === 'profile'} icon={<UserRound className="size-4" />} label="Profile" onClick={() => setActiveView('profile')} />
+        </div>
       </div>
     </div>
   );
