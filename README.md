@@ -2,6 +2,9 @@
 
 This project rebuilds the original Mini Social Networking App as **Ripple**, using a React/Vite frontend with locally persisted social features translated from `Ripple_nexo_full_backend_merge`.
 
+#Live Preview
+https://ripple-react.vercel.app/
+
 ## Included feature set
 - Ripple brand, palette, and glassmorphism-inspired shell
 - Login and registration flows

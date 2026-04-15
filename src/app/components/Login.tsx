@@ -94,8 +94,8 @@ export function Login({ onLogin, onSwitchToRegister }: LoginProps) {
 
           <div className="mt-6 p-4 bg-accent/50 border-2 border-border">
             <p className="text-xs text-muted-foreground mb-2">Demo credentials:</p>
-            <p className="text-xs font-mono">Username: <span className="font-semibold">demo</span></p>
-            <p className="text-xs font-mono">Password: <span className="font-semibold">demo</span></p>
+            <p className="text-xs font-mono">Username: <span className="font-semibold"></span></p>
+            <p className="text-xs font-mono">Password: <span className="font-semibold"></span></p>
           </div>
         </div>
       </div>
